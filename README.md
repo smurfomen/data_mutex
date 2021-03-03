@@ -1,11 +1,11 @@
-## AsyncStorage
+## QDataMutex
 
 Implementation of the solution to the problem of race for a resource in multithreaded control.
-AsyncStorage allows you to manage data in blocking mode with a mutex bound to that data.
-While the AsyncStorage <T>::locker object exists, access to the data will be blocked.
+QDataMutex allows you to manage data in blocking mode with a mutex bound to that data.
+While the QDataMutex<T>::locker object exists, access to the data will be blocked.
 
 ```C++
-AsyncStorage<int> storage(25);
+QDataMutex<int> storage(25);
 
 // like this
 auto lck = storage.lock();
@@ -18,7 +18,7 @@ storage.locked([](int * i) {
 ```
 The same can be done in different threads, execution in this case will be sequential:
 ```C++
-AsyncStorage<int> storage(25);
+QDataMutex<int> storage(25);
 
 // run thread
 // thread t will block this thread while lck object is exists

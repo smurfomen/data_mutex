@@ -23,7 +23,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 
-include($$PWD/../../asyncstorage.pri)
+include($$PWD/../../datamutex.pri)
 
 HEADERS += \
     sample_classes.h

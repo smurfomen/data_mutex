@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include <thread>
 #include <QThread>
-#include <asyncstorage.h>
+#include <datamutex.h>
 #include <QDebug>
 #include <sample_classes.h>
 
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    AsyncStorage<A> A_storage(A(0,0));
+    DataMutex<A> A_storage(A(0,0));
 
     // запустить отдельный поток - если все верно - выполнение продолжится после завершения потока
     std::thread * t = new std::thread([&](){
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     {
         auto box = A_storage.lock();
         auto data = box.data();
-        qDebug()<<"AsyncStorage::lock()"<<data->a << ++data->b;
+        qDebug()<<"DataMutex::lock()"<<data->a << ++data->b;
     }
 
     t->join();
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
 
 
-    AsyncStorage<B> ab(B(1,0, "Первый"));
+    DataMutex<B> ab(B(1,0, "Первый"));
 
     ab.locked([](B*obj){
         qDebug()<< obj->a << ++obj->b << obj->m;

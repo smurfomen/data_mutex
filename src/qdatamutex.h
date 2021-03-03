@@ -1,11 +1,11 @@
-﻿#ifndef ASYNCSTORAGE_H
-#define ASYNCSTORAGE_H
+﻿#ifndef DATAMUTEX_H
+#define DATAMUTEX_H
 
 #include <mutex>
 #include <qoption.h>
 ///@brief Class who providing storage for multi-thread safe blocking interaction with stored object of @e T type
 template< class T>
-class AsyncStorage
+class DataMutex
 {
 public:
     class locker
@@ -46,8 +46,8 @@ public:
         ///@brief Returns QOptional container with data raw pointer
         QOption<T*> optional() const {
             if(pvalue)
-                return QOption<T*>::Some(pvalue);
-            return QOption<T*>::NONE;
+                return pvalue;
+            return None();
         }
 
     private:
@@ -56,16 +56,16 @@ public:
     };
 
     /* deleted */
-    AsyncStorage(const AsyncStorage & o) = delete;
-    AsyncStorage(AsyncStorage && o) = delete;
-    AsyncStorage & operator=(AsyncStorage && o) = delete;
+    DataMutex(const DataMutex & o) = delete;
+    DataMutex(DataMutex && o) = delete;
+    DataMutex & operator=(DataMutex && o) = delete;
 
     ///@brief Copy constructor
-    AsyncStorage(const T & v)
+    DataMutex(const T & v)
         : value(v) { }
 
     ///@brief Move constructor
-    AsyncStorage(T && v) noexcept
+    DataMutex(T && v) noexcept
         : value(std::forward<T>(v)) { }
 
     ///@brief Returns @e locker object. This call will blocked if some locker already exists
@@ -81,19 +81,19 @@ public:
         fn(b.data());
     }
 
-    AsyncStorage & operator=(const T& o) {
+    DataMutex & operator=(const T& o) {
         auto l = lock();
         *l.data() = o;
         return *this;
     }
 
-    AsyncStorage & operator=(T && o) {
+    DataMutex & operator=(T && o) {
         auto l = lock();
         *l.data() = std::forward<T>(o);
         return *this;
     }
 
-    AsyncStorage & operator=(const AsyncStorage & o) {
+    DataMutex & operator=(const DataMutex & o) {
         auto l = lock();
         auto ol = o.lock();
         *l.data() = *ol.data();
@@ -104,4 +104,4 @@ private:
     std::mutex mtx;
     T value;
 };
-#endif // ASYNCSTORAGE_H
+#endif // DATAMUTEX_H
