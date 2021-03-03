@@ -1,11 +1,11 @@
-﻿#ifndef DATAMUTEX_H
-#define DATAMUTEX_H
+﻿#ifndef QDATAMUTEX_H
+#define QDATAMUTEX_H
 
 #include <mutex>
 #include <qoption.h>
 ///@brief Class who providing storage for multi-thread safe blocking interaction with stored object of @e T type
 template< class T>
-class DataMutex
+class QDataMutex
 {
 public:
     class locker
@@ -56,16 +56,16 @@ public:
     };
 
     /* deleted */
-    DataMutex(const DataMutex & o) = delete;
-    DataMutex(DataMutex && o) = delete;
-    DataMutex & operator=(DataMutex && o) = delete;
+    QDataMutex(const QDataMutex & o) = delete;
+    QDataMutex(QDataMutex && o) = delete;
+    QDataMutex & operator=(QDataMutex && o) = delete;
 
     ///@brief Copy constructor
-    DataMutex(const T & v)
+    QDataMutex(const T & v)
         : value(v) { }
 
     ///@brief Move constructor
-    DataMutex(T && v) noexcept
+    QDataMutex(T && v) noexcept
         : value(std::forward<T>(v)) { }
 
     ///@brief Returns @e locker object. This call will blocked if some locker already exists
@@ -81,19 +81,19 @@ public:
         fn(b.data());
     }
 
-    DataMutex & operator=(const T& o) {
+    QDataMutex & operator=(const T& o) {
         auto l = lock();
         *l.data() = o;
         return *this;
     }
 
-    DataMutex & operator=(T && o) {
+    QDataMutex & operator=(T && o) {
         auto l = lock();
         *l.data() = std::forward<T>(o);
         return *this;
     }
 
-    DataMutex & operator=(const DataMutex & o) {
+    QDataMutex & operator=(const QDataMutex & o) {
         auto l = lock();
         auto ol = o.lock();
         *l.data() = *ol.data();
