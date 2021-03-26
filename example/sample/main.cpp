@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include <thread>
 #include <QThread>
-#include <datamutex.h>
+#include <qdatamutex.h>
 #include <QDebug>
 #include <sample_classes.h>
 
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    DataMutex<A> A_storage(A(0,0));
+    QDataMutex<A> A_storage(A(0,0));
 
     // запустить отдельный поток - если все верно - выполнение продолжится после завершения потока
     std::thread * t = new std::thread([&](){
@@ -42,9 +42,6 @@ int main(int argc, char *argv[])
         qDebug()<<data->a << ++data->b;
     }
 
-    A second (2,2);
-    A_storage = second;
-
     A_storage = A(2,4);
 
     {
@@ -60,7 +57,7 @@ int main(int argc, char *argv[])
 
 
 
-    DataMutex<B> ab(B(1,0, "Первый"));
+    QDataMutex<B> ab(B(1,0, "Первый"));
 
     ab.locked([](B*obj){
         qDebug()<< obj->a << ++obj->b << obj->m;
@@ -96,7 +93,7 @@ int main(int argc, char *argv[])
 
 
 
-    auto o = QOption<A>::Some(A(222, 333));
+    auto o = Some(A(222, 333));
 
     o.if_none([](){
         qDebug()<<"wrong";

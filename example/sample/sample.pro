@@ -23,7 +23,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 
-include($$PWD/../../datamutex.pri)
+include($$PWD/../../qdatamutex.pri)
 
 HEADERS += \
     sample_classes.h
