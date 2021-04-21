@@ -1,6 +1,9 @@
 HEADERS += \
         $$PWD/src/qdatamutex.h
 
-include($$PWD/QOption/qoption.pri)
-
 INCLUDEPATH += $$PWD/src/
+
+CONFIG(QOPTION_INCLUDED) {
+        message("QOption already included")
+        INCLUDEPATH += $$PWD/QOption
+}

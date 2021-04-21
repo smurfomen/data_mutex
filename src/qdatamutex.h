@@ -2,7 +2,7 @@
 #define QDATAMUTEX_H
 
 #include <mutex>
-#include <qoption.h>
+#include <QOption>
 ///@brief Class who providing storage for multi-thread safe blocking interaction with stored object of @e T type
 template< class T>
 class QDataMutex
