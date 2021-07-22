@@ -8,13 +8,19 @@ While the QDataMutex<T>::locker object exists, access to the data will be blocke
 QDataMutex<int> storage(25);
 
 // like this
-auto lck = storage.lock();
-std::cout<< *lck.data()++;
+{
+  for(int s = 0; s < 100; ++s) {
+      auto lck = storage.lock();
+      qDebug() << lck.value()++;
+  }
+}
 
 // or
-storage.locked([](int * i) {
-  std::cout << *i++;
-});
+for(int s = 0; s < 100; ++s) {
+  storage.locked([](int & i) {
+    qDebug() << i++;
+  });
+}
 ```
 The same can be done in different threads, execution in this case will be sequential:
 ```C++
@@ -23,17 +29,19 @@ QDataMutex<int> storage(25);
 // run thread
 // thread t will block this thread while lck object is exists
 std::thread * t = new std::thread([&](){
-    auto lck = storage.lock();
-    for(int i = 0; i < 100; i++) {
-        *lck.data()+=i;
-        std::cout<<*lck.data();
-    }
+  auto lck = storage.lock();
+  for(int i = 0; i < 100; i++) {
+    lck.value() += 1;
+    qDebug()<<lck.value();
+  }
 });
 
-auto lck = storage.lock();
-for(int i = 0; i < 100; i++) {
-    *lck.data()+=i;
-    std::cout<<*lck.data();
+{
+  auto lck = storage.lock();
+  for(int i = 0; i < 100; i++) {
+    lck.value() += 1;
+    qDebug()<<lck.value();
+  }
 }
 
 t->join();
