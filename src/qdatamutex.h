@@ -82,7 +82,6 @@ class QDataMutex
 
 public:
     /* deleted */
-    QDataMutex(const QDataMutex & o) = delete;
     QDataMutex(QDataMutex && o) = delete;
     QDataMutex & operator=(QDataMutex && o) = delete;
     QDataMutex & operator=(const QDataMutex & o) = delete;
