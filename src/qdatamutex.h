@@ -125,15 +125,19 @@ public:
         locked<void>(fn);
     }
 
-    QDataMutex & operator=(const T& o) {
-        auto l = lock();
-        l.value() = o;
+    QDataMutex & operator=(const T & o) {
+        {
+            auto l = lock();
+            value = o;
+        }
         return *this;
     }
 
     QDataMutex & operator=(T && o) {
-        auto l = lock();
-        l.value() = std::forward<T>(o);
+        {
+            auto l = lock();
+            value = std::forward<T>(o);
+        }
         return *this;
     }
 
