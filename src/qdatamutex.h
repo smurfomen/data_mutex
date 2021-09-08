@@ -1,8 +1,44 @@
+/*
+ MIT License
+
+ Copyright (c) 2020 Agadzhanov Vladimir
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+                                                                                 */
 #ifndef QDATAMUTEX_H
 #define QDATAMUTEX_H
 
 #include <mutex>
 #include <functional>
+// For generic types that are functors, delegate to its 'operator()'
+template <typename _FnT>
+struct __function_traits
+    : public __function_traits<decltype(&_FnT::operator())>
+{};
+
+// for pointers to member function
+template <typename ClassType, typename ReturnType, typename... Args>
+struct __function_traits<ReturnType(ClassType::*)(Args...) const> {
+    typedef std::function<ReturnType (Args...)> f_type;
+};
+
+
 #ifdef QOPTION_INCLUDED
 #include <QOption>
 #endif
@@ -104,25 +140,10 @@ public:
         return locker(&value, &mtx);
     }
 
-    /*!
-     * \brief   Execute lambda expression in lock mode and returns _Res type value.
-     * \note    Lambda must take as an argument a reference to an object of type
-     *          This call will blocked if some locker already exists.
-     */
-    template<typename _Res = void>
-    _Res locked(std::function<_Res(T&)> && fn) {
+    template<typename _Fn, class _Res = typename __function_traits<_Fn>::f_type::result_type>
+    _Res locked(_Fn fn) {
         auto b = lock();
         return fn(b.value());
-    }
-
-    /*!
-     * \brief   Execute lambda expression in lock mode.
-     * \note    Lambda must take as an argument a reference to an object of type
-     *          This call will blocked if some locker already exists.
-     */
-    template<typename _Callable>
-    void locked(_Callable && fn) {
-        locked<void>(fn);
     }
 
     QDataMutex & operator=(const T & o) {
@@ -141,11 +162,12 @@ public:
         return *this;
     }
 
-private:    
+private:
     std::mutex mtx;
 
     /*! \brief  Stored value. */
     T value;
 };
 #endif // DATAMUTEX_H
+
 
