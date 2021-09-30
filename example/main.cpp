@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include <thread>
 #include <QThread>
-#include <qdatamutex.h>
+#include <QDataMutex>
 #include <QDebug>
 #include <sample_classes.h>
 
