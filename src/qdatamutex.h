@@ -26,17 +26,6 @@
 
 #include <mutex>
 #include <functional>
-// For generic types that are functors, delegate to its 'operator()'
-template <typename _FnT>
-struct __function_traits
-    : public __function_traits<decltype(&_FnT::operator())>
-{};
-
-// for pointers to member function
-template <typename ClassType, typename ReturnType, typename... Args>
-struct __function_traits<ReturnType(ClassType::*)(Args...) const> {
-    typedef std::function<ReturnType (Args...)> f_type;
-};
 
 
 #ifdef QOPTION_INCLUDED
@@ -47,6 +36,18 @@ struct __function_traits<ReturnType(ClassType::*)(Args...) const> {
 template <class T>
 class QDataMutex
 {
+    // For generic types that are functors, delegate to its 'operator()'
+    template <typename _FnT>
+    struct __data_mutex_function_traits
+        : public __data_mutex_function_traits<decltype(&_FnT::operator())>
+    {};
+
+    // for pointers to member function
+    template <typename ClassType, typename ReturnType, typename... Args>
+    struct __data_mutex_function_traits<ReturnType(ClassType::*)(Args...) const> {
+        typedef std::function<ReturnType (Args...)> f_type;
+    };
+
     class locker
     {
     public:
@@ -140,7 +141,7 @@ public:
         return locker(&value, &mtx);
     }
 
-    template<typename _Fn, class _Res = typename __function_traits<_Fn>::f_type::result_type>
+    template<typename _Fn, class _Res = typename __data_mutex_function_traits<_Fn>::f_type::result_type>
     _Res locked(_Fn fn) {
         auto b = lock();
         return fn(b.value());
