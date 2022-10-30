@@ -21,20 +21,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
                                                                                  */
-#ifndef QDATAMUTEX_H
-#define QDATAMUTEX_H
+#ifndef DATAMUTEX_H
+#define DATAMUTEX_H
 
 #include <mutex>
 #include <functional>
 
 
-#ifdef QOPTION_INCLUDED
-#include <QOption>
+#ifdef OPTIONAL_INCLUDED
+#include <optional>
 #endif
 
 /*! \brief  Template class who providing storage for multi-thread safe blocking interaction with stored object. */
 template <class T>
-class QDataMutex
+class data_mutex
 {
     // For generic types that are functors, delegate to its 'operator()'
     template <typename _FnT>
@@ -99,13 +99,13 @@ class QDataMutex
         T * data() const noexcept
         { return pvalue; }
 
-#ifdef QOPTION_INCLUDED
+#ifdef OPTIONAL_INCLUDED
         /*! \brief  Returns QOptional container with data raw pointer. */
-        QOption<T*> optional() const noexcept {
-            if(pvalue)
+		tl::optional<T*> optional() const noexcept {
+			if(pvalue) {
                 return pvalue;
-
-            return None();
+			}
+			return nullopt;
         }
 #endif
 
@@ -119,17 +119,17 @@ class QDataMutex
 
 public:
     /* deleted */
-    QDataMutex(QDataMutex && o) = delete;
-    QDataMutex & operator=(QDataMutex && o) = delete;
-    QDataMutex & operator=(const QDataMutex & o) = delete;
+	data_mutex(data_mutex && o) = delete;
+	data_mutex & operator=(data_mutex && o) = delete;
+	data_mutex & operator=(const data_mutex & o) = delete;
 
-    QDataMutex(const T & v)
+	data_mutex(const T & v)
         : value(v) { }
 
-    QDataMutex()
+	data_mutex()
         : value(T()) { }
 
-    QDataMutex(T && v) noexcept
+	data_mutex(T && v) noexcept
         : value(std::forward<T>(v)) { }
 
     /*!
@@ -147,7 +147,7 @@ public:
         return fn(b.value());
     }
 
-    QDataMutex & operator=(const T & o) {
+	data_mutex & operator=(const T & o) {
         {
             auto l = lock();
             value = o;
@@ -155,7 +155,7 @@ public:
         return *this;
     }
 
-    QDataMutex & operator=(T && o) {
+	data_mutex & operator=(T && o) {
         {
             auto l = lock();
             value = std::forward<T>(o);

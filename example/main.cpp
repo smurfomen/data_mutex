@@ -1,7 +1,7 @@
 #include <QCoreApplication>
 #include <thread>
 #include <QThread>
-#include <qdatamutex.h>
+#include <data_mutex>
 #include <QDebug>
 #include <sample_classes.h>
 
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    QDataMutex<A> A_storage(A(0,0));
+	data_mutex<A> A_storage(A(0,0));
 
     // запустить отдельный поток - если все верно - выполнение продолжится после завершения потока
     std::thread * t = new std::thread([&](){
@@ -24,8 +24,8 @@ int main(int argc, char *argv[])
     QThread::msleep(100);
 
     // выполнить функцию блокированно - если все верно - выполнение будет ожидать уничтожения box в потоке выше
-    A_storage.locked([](A*obj){
-        qDebug()<<obj->a << ++obj->b;
+	A_storage.locked([](A & obj){
+		qDebug()<<obj.a << ++obj.b;
         QThread::sleep(1);
     });
 
@@ -57,10 +57,10 @@ int main(int argc, char *argv[])
 
 
 
-    QDataMutex<B> ab(B(1,0, "Первый"));
+	data_mutex<B> ab(B(1,0, "Первый"));
 
-    ab.locked([](B*obj){
-        qDebug()<< obj->a << ++obj->b << obj->m;
+	ab.locked([](B & obj){
+		qDebug()<< obj.a << ++obj.b << obj.m;
         QThread::sleep(1);
     });
 
@@ -89,29 +89,6 @@ int main(int argc, char *argv[])
     }
 
     t1->join();
-
-
-
-
-    auto o = Some(A(222, 333));
-
-    o.if_none([](){
-        qDebug()<<"wrong";
-    }).if_some([](A & a){
-        qDebug()<<"first";
-        qDebug()<<a.a++<<a.b++;
-    })
-    .if_some([](A & a) {
-        qDebug()<<"second";
-        qDebug()<<a.a<<a.b;
-    });
-
-
-    qDebug()<<o.unwrap().a;
-
-
-
-
 
 
     return a.exec();
