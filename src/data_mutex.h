@@ -118,19 +118,26 @@ class data_mutex
     };
 
 public:
-    /* deleted */
-	data_mutex(data_mutex && o) = delete;
-	data_mutex & operator=(data_mutex && o) = delete;
-	data_mutex & operator=(const data_mutex & o) = delete;
+
+	data_mutex(const data_mutex & o)
+		: value(o.value)
+	{ }
+
+	data_mutex(data_mutex && o)
+		: value(std::move(o.value))
+	{ }
 
 	data_mutex(const T & v)
-        : value(v) { }
+		: value(v)
+	{ }
 
 	data_mutex()
-        : value(T()) { }
+		: value(T())
+	{ }
 
 	data_mutex(T && v) noexcept
-        : value(std::forward<T>(v)) { }
+		: value(std::forward<T>(v))
+	{ }
 
     /*!
      * \brief   Returns locker object.
@@ -140,6 +147,25 @@ public:
         mtx.lock();
         return locker(&value, &mtx);
     }
+
+	data_mutex & operator=(data_mutex && o) {
+		if(this != &o)
+		{
+			auto l = lock();
+			value = o.value;
+		}
+		return *this;
+	}
+
+	data_mutex & operator=(const data_mutex & o) {
+		if(this != &o)
+		{
+			auto l = lock();
+			value = o.value;
+		}
+		return *this;
+	};
+
 
     template<typename _Fn, class _Res = typename __data_mutex_function_traits<_Fn>::f_type::result_type>
     _Res locked(_Fn fn) {
@@ -161,7 +187,7 @@ public:
             value = std::forward<T>(o);
         }
         return *this;
-    }
+	}
 
 private:
     std::mutex mtx;
@@ -170,5 +196,6 @@ private:
     T value;
 };
 #endif // DATAMUTEX_H
+
 
 
