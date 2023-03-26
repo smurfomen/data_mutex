@@ -48,6 +48,7 @@ class data_mutex
         typedef std::function<ReturnType (Args...)> f_type;
     };
 
+	template<typename U>
     class locker
     {
     public:
@@ -56,18 +57,29 @@ class data_mutex
          * \arg     value - raw pointer to stored value
          *          mtx - already locked mutex!
          */
-        locker(T * value, std::mutex * mtx)
-            : pmtx(mtx), pvalue(value) { }
+		locker(U * value, std::mutex * mtx)
+			: pmtx(mtx), pvalue(value) { }
 
-        locker(locker && b) noexcept {
-            pmtx = b.pmtx;
-            b.pmtx = nullptr;
-            pvalue = b.pvalue;
+		locker(locker && rhs) noexcept {
+			pmtx = rhs.pmtx;
+			rhs.pmtx = nullptr;
+			pvalue = rhs.pvalue;
         }
 
         /* deleted */
-        locker(const locker & o) = delete;
-        locker& operator=(const locker & o) = delete;
+		locker(const locker & rhs) = delete;
+		locker& operator=(const locker & rhs) = delete;
+
+		locker& operator=(locker && rhs) noexcept {
+			if(this != &rhs)
+			{
+				pmtx = rhs.pmtx;
+				rhs.pmtx = nullptr;
+				pvalue = rhs.pvalue;
+				rhs.pvalue = nullptr;
+			}
+			return *this;
+		}
 
         ~locker() {
             if(pmtx)
@@ -78,30 +90,30 @@ class data_mutex
          * \brief   Returns value ref.
          * \note    WARNING: reference lifetime must be less than lifetime of the locker object.
          */
-        T& value() const
+		U& value() const
         { return *pvalue; }
 
         /*!
          * \brief   Provides access to value pointer.
          * \note    WARNING: pointer lifetime must be less than lifetime of the locker object.
          */
-        T* operator->() const noexcept
+		U* operator->() const noexcept
         { return pvalue; }
 
         /*! \brief  Returns const data raw pointer. */
-        const T * constData() const noexcept
+		const U * constData() const noexcept
         { return pvalue; }
 
         /*!
          * \brief   Returns value pointer.
          * \note    WARNING: pointer lifetime must be less than lifetime of the locker object.
          */
-        T * data() const noexcept
+		U * data() const noexcept
         { return pvalue; }
 
 #ifdef OPTIONAL_INCLUDED
         /*! \brief  Returns QOptional container with data raw pointer. */
-		tl::optional<T*> optional() const noexcept {
+		tl::optional<U*> optional() const noexcept {
 			if(pvalue) {
                 return pvalue;
 			}
@@ -111,10 +123,10 @@ class data_mutex
 
     private:
         /*! \brief  Pointer to locked mutex. */
-        std::mutex * pmtx {nullptr};
+		std::mutex * pmtx {nullptr};
 
         /*! \brief  Pointer to stored value. */
-        T * pvalue {nullptr};
+		U * pvalue {nullptr};
     };
 
 public:
@@ -143,12 +155,12 @@ public:
      * \brief   Returns locker object.
      * \note    This call will blocked if some locker already exists.
      */
-    locker lock() {
+	locker<T> lock() {
         mtx.lock();
-        return locker(&value, &mtx);
+		return locker<T>(&value, &mtx);
     }
 
-	data_mutex & operator=(data_mutex && o) {
+	data_mutex& operator=(data_mutex && o) {
 		if(this != &o)
 		{
 			auto l = lock();
@@ -157,7 +169,7 @@ public:
 		return *this;
 	}
 
-	data_mutex & operator=(const data_mutex & o) {
+	data_mutex& operator=(const data_mutex & o) {
 		if(this != &o)
 		{
 			auto l = lock();
@@ -168,9 +180,9 @@ public:
 
 
     template<typename _Fn, class _Res = typename __data_mutex_function_traits<_Fn>::f_type::result_type>
-    _Res locked(_Fn fn) {
+	_Res locked(_Fn && fn) {
         auto b = lock();
-        return fn(b.value());
+		return fn(value);
     }
 
 	data_mutex & operator=(const T & o) {
@@ -193,7 +205,7 @@ private:
     std::mutex mtx;
 
     /*! \brief  Stored value. */
-    T value;
+	T value;
 };
 #endif // DATAMUTEX_H
 
